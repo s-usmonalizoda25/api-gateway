@@ -28,6 +28,7 @@ func New(option Option) *gin.Engine {
 		api.GET("/booking/:booking_id", handler.GetBooking)
 		api.GET("/booking/user/:user_id", handler.GetUserBookings)
 		api.DELETE("/booking/:booking_id", handler.CancelBooking)
+		api.POST("/user/login", handler.Login)
 	}
 
 	return router

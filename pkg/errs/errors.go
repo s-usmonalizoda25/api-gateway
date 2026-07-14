@@ -15,6 +15,7 @@ var (
 	MsgFailedGetBooking      = "failed to get booking"
 	MsgFailedGetUserBookings = "failed to get user bookings"
 	MsgFailedCancelBooking   = "failed to cancel booking"
+	MsgFailedLogin           = "failed to login"
 )
 
 func HandleValidationError(c *gin.Context, err error) {

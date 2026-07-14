@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/s-usmonalizoda25/api-gateway/models"
 	"github.com/s-usmonalizoda25/api-gateway/pkg/errs"
 	userpb "github.com/s-usmonalizoda25/protoCinemaService/gen/user"
 )
@@ -23,6 +24,26 @@ func (h *handler) GetUser(c *gin.Context) {
 
 	if err != nil {
 		errs.HandleError(c, h.log, errs.MsgFailedGetUser, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, response)
+}
+
+func (h *handler) Login(c *gin.Context) {
+	var body models.LoginRequest
+	if err := c.ShouldBindJSON(&body); err != nil {
+		errs.HandleValidationError(c, err)
+		return
+	}
+
+	response, err := h.serviceManager.UserService().Login(c.Request.Context(), &userpb.LoginRequest{
+		Email:    body.Email,
+		Password: body.Password,
+	})
+
+	if err != nil {
+		errs.HandleError(c, h.log, errs.MsgFailedLogin, err)
 		return
 	}
 
