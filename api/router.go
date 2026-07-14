@@ -22,6 +22,7 @@ func New(option Option) *gin.Engine {
 
 	api := router.Group("/api")
 	{
+		api.POST("/user/register", handler.Register)
 		api.GET("/user/:user_id", handler.GetUser)
 		api.POST("/movie/create", handler.CreateMovie)
 		api.POST("/booking/create", handler.CreateBooking)

@@ -10,6 +10,29 @@ import (
 	userpb "github.com/s-usmonalizoda25/protoCinemaService/gen/user"
 )
 
+func (h *handler) Register(c *gin.Context) {
+	var body models.CreateUserRequest
+	if err := c.ShouldBindJSON(&body); err != nil {
+		errs.HandleValidationError(c, err)
+		return
+	}
+
+	response, err := h.serviceManager.UserService().Add(c.Request.Context(), &userpb.CreateUserRequest{
+		Name:     body.Username,
+		Email:    body.Email,
+		Password: body.Password,
+		Age:      body.Age,
+		Phone:    body.Phone,
+	})
+
+	if err != nil {
+		errs.HandleError(c, h.log, errs.MsgFailedRegister, err)
+		return
+	}
+
+	c.JSON(http.StatusCreated, response)
+}
+
 func (h *handler) GetUser(c *gin.Context) {
 	idStr := c.Param("user_id")
 	id, err := strconv.ParseInt(idStr, 10, 64)

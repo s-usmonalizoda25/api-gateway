@@ -9,6 +9,7 @@ import (
 )
 
 var (
+	MsgFailedRegister        = "failed to register user"
 	MsgFailedGetUser         = "failed to get user"
 	MsgFailedCreateMovie     = "failed to create movie"
 	MsgFailedCreateBooking   = "failed to create booking"
