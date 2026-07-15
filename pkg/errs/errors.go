@@ -17,6 +17,9 @@ var (
 	MsgFailedGetUserBookings = "failed to get user bookings"
 	MsgFailedCancelBooking   = "failed to cancel booking"
 	MsgFailedLogin           = "failed to login"
+
+	MsgUnauthorized = "unauthorized: invalid or missing token"
+	MsgTokenExpired = "token expired"
 )
 
 func HandleValidationError(c *gin.Context, err error) {
@@ -34,4 +37,9 @@ func HandleValidationError(c *gin.Context, err error) {
 func HandleError(c *gin.Context, log *zap.Logger, msg string, err error) {
 	log.Error(msg, zap.Error(err))
 	c.JSON(http.StatusInternalServerError, gin.H{"error": msg})
+}
+
+func HandleAuthError(c *gin.Context, log *zap.Logger, msg string) {
+	log.Warn("auth error", zap.String("message", msg))
+	c.JSON(http.StatusUnauthorized, gin.H{"error": msg})
 }

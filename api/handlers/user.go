@@ -70,5 +70,9 @@ func (h *handler) Login(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, response)
+	c.JSON(http.StatusOK, gin.H{
+		"id":            response.Id,
+		"access_token":  response.AccessToken,
+		"refresh_token": response.RefreshToken,
+	})
 }

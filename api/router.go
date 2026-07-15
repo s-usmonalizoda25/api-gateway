@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/s-usmonalizoda25/api-gateway/api/handlers"
 	"github.com/s-usmonalizoda25/api-gateway/config"
+	"github.com/s-usmonalizoda25/api-gateway/internal/middleware"
 	"github.com/s-usmonalizoda25/api-gateway/services"
 	"go.uber.org/zap"
 )
@@ -23,13 +24,18 @@ func New(option Option) *gin.Engine {
 	api := router.Group("/api")
 	{
 		api.POST("/user/register", handler.Register)
-		api.GET("/user/:user_id", handler.GetUser)
-		api.POST("/movie/create", handler.CreateMovie)
-		api.POST("/booking/create", handler.CreateBooking)
-		api.GET("/booking/:booking_id", handler.GetBooking)
-		api.GET("/booking/user/:user_id", handler.GetUserBookings)
-		api.DELETE("/booking/:booking_id", handler.CancelBooking)
 		api.POST("/user/login", handler.Login)
+	}
+
+	protected := router.Group("/api")
+	protected.Use(middleware.AuthMiddleware(option.Log))
+	{
+		protected.GET("/user/:user_id", handler.GetUser)
+		protected.POST("/movie/create", handler.CreateMovie)
+		protected.POST("/booking/create", handler.CreateBooking)
+		protected.GET("/booking/:booking_id", handler.GetBooking)
+		protected.GET("/booking/user/:user_id", handler.GetUserBookings)
+		protected.DELETE("/booking/:booking_id", handler.CancelBooking)
 	}
 
 	return router
