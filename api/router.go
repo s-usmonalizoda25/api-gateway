@@ -35,6 +35,8 @@ func New(option Option) *gin.Engine {
 	protected.Use(middleware.AuthMiddleware(option.Log))
 	{
 		protected.GET("/user/:user_id", middleware.CheckPermission(option.Log, permission.UserView), handler.GetUser)
+		protected.GET("/user/me", middleware.CheckPermission(option.Log, permission.UserViewMe), handler.GetMyProfile)
+		protected.PUT("/user/me", middleware.CheckPermission(option.Log, permission.UserUpdate), handler.UpdateMyProfile)
 
 		protected.POST("/movies", middleware.CheckPermission(option.Log, permission.MovieCreate), handler.CreateMovie)
 		protected.PUT("/movies/:id", middleware.CheckPermission(option.Log, permission.MovieUpdate), handler.UpdateMovie)
