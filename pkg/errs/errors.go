@@ -9,8 +9,9 @@ import (
 )
 
 var (
-	MsgFailedRegister = "failed to register user"
-	MsgFailedGetUser  = "failed to get user"
+	MsgFailedRegister   = "failed to register user"
+	MsgFailedGetUser    = "failed to get user"
+	MsgFailedUpdateUser = "failed to update user"
 
 	MsgFailedCreateMovie = "failed to create movie"
 	MsgFailedListMovies  = "failed to list movies"
@@ -22,8 +23,8 @@ var (
 	MsgFailedGetBooking      = "failed to get booking"
 	MsgFailedGetUserBookings = "failed to get user bookings"
 	MsgFailedCancelBooking   = "failed to cancel booking"
-	
-	MsgFailedLogin           = "failed to login"
+
+	MsgFailedLogin = "failed to login"
 
 	MsgUnauthorized = "unauthorized: invalid or missing token"
 	MsgTokenExpired = "token expired"

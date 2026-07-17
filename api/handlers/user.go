@@ -76,3 +76,50 @@ func (h *handler) Login(c *gin.Context) {
 		"refresh_token": response.RefreshToken,
 	})
 }
+
+func (h *handler) GetMyProfile(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		errs.HandleAuthError(c, h.log, errs.MsgUnauthorized)
+		return
+	}
+
+	uid := int64(userID.(float64))
+
+	response, err := h.serviceManager.UserService().GetByID(c.Request.Context(), &userpb.GetUserRequest{
+		Id: uid,
+	})
+	if err != nil {
+		errs.HandleError(c, h.log, errs.MsgFailedGetUser, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, response)
+}
+
+func (h *handler) UpdateMyProfile(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		errs.HandleAuthError(c, h.log, errs.MsgUnauthorized)
+		return
+	}
+	uid := int64(userID.(float64))
+
+	var body models.UpdateUserRequest
+	if err := c.ShouldBindJSON(&body); err != nil {
+		errs.HandleValidationError(c, err)
+		return
+	}
+
+	_, err := h.serviceManager.UserService().Update(c.Request.Context(), &userpb.UpdateUserRequest{
+		Id:    uid,
+		Name:  body.Username,
+		Phone: body.Phone,
+	})
+	if err != nil {
+		errs.HandleError(c, h.log, errs.MsgFailedUpdateUser, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "profile updated successfully"})
+}

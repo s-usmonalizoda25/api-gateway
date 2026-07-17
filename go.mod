@@ -7,7 +7,7 @@ require (
 	github.com/go-playground/validator/v10 v10.30.1
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/ilyakaznacheev/cleanenv v1.5.0
-	github.com/s-usmonalizoda25/protoCinemaService v0.0.0-20260715075719-3c64b5db523b
+	github.com/s-usmonalizoda25/protoCinemaService v0.0.0-20260715100535-51774a3c5e1e
 	go.uber.org/zap v1.28.0
 	google.golang.org/grpc v1.82.0
 )
