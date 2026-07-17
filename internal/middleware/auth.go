@@ -39,6 +39,15 @@ func AuthMiddleware(log *zap.Logger) gin.HandlerFunc {
 			return
 		}
 
+		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+			c.Set("role", claims["role"])
+			c.Set("user_id", claims["user_id"])
+		} else {
+			errs.HandleAuthError(c, log, errs.MsgUnauthorized)
+			c.Abort()
+			return
+		}
+
 		c.Next()
 	}
 }

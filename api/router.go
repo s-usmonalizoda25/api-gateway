@@ -5,6 +5,7 @@ import (
 	"github.com/s-usmonalizoda25/api-gateway/api/handlers"
 	"github.com/s-usmonalizoda25/api-gateway/config"
 	"github.com/s-usmonalizoda25/api-gateway/internal/middleware"
+	"github.com/s-usmonalizoda25/api-gateway/models/permission"
 	"github.com/s-usmonalizoda25/api-gateway/services"
 	"go.uber.org/zap"
 )
@@ -30,12 +31,14 @@ func New(option Option) *gin.Engine {
 	protected := router.Group("/api")
 	protected.Use(middleware.AuthMiddleware(option.Log))
 	{
-		protected.GET("/user/:user_id", handler.GetUser)
-		protected.POST("/movie/create", handler.CreateMovie)
-		protected.POST("/booking/create", handler.CreateBooking)
-		protected.GET("/booking/:booking_id", handler.GetBooking)
-		protected.GET("/booking/user/:user_id", handler.GetUserBookings)
-		protected.DELETE("/booking/:booking_id", handler.CancelBooking)
+		protected.GET("/user/:user_id", middleware.CheckPermission(option.Log, permission.UserView), handler.GetUser)
+
+		protected.POST("/movie/create", middleware.CheckPermission(option.Log, permission.MovieCreate), handler.CreateMovie)
+
+		protected.POST("/booking/create", middleware.CheckPermission(option.Log, permission.BookingCreate), handler.CreateBooking)
+		protected.GET("/booking/:booking_id", middleware.CheckPermission(option.Log, permission.BookingView), handler.GetBooking)
+		protected.GET("/booking/user/:user_id", middleware.CheckPermission(option.Log, permission.BookingViewMe), handler.GetUserBookings)
+		protected.DELETE("/booking/:booking_id", middleware.CheckPermission(option.Log, permission.BookingCancel), handler.CancelBooking)
 	}
 
 	return router

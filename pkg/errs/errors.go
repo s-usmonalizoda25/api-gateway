@@ -20,6 +20,8 @@ var (
 
 	MsgUnauthorized = "unauthorized: invalid or missing token"
 	MsgTokenExpired = "token expired"
+
+	MsgForbidden = "forbidden: you do not have permission"
 )
 
 func HandleValidationError(c *gin.Context, err error) {
@@ -42,4 +44,9 @@ func HandleError(c *gin.Context, log *zap.Logger, msg string, err error) {
 func HandleAuthError(c *gin.Context, log *zap.Logger, msg string) {
 	log.Warn("auth error", zap.String("message", msg))
 	c.JSON(http.StatusUnauthorized, gin.H{"error": msg})
+}
+
+func HandleForbiddenError(c *gin.Context, log *zap.Logger, msg string) {
+	log.Warn("forbidden error", zap.String("message", msg))
+	c.JSON(http.StatusForbidden, gin.H{"error": msg})
 }
