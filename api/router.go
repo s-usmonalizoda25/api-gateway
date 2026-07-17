@@ -41,6 +41,7 @@ func New(option Option) *gin.Engine {
 		protected.DELETE("/movies/:id", middleware.CheckPermission(option.Log, permission.MovieDelete), handler.DeleteMovie)
 
 		protected.POST("/booking/create", middleware.CheckPermission(option.Log, permission.BookingCreate), handler.CreateBooking)
+		protected.GET("/booking/me", middleware.CheckPermission(option.Log, permission.BookingViewMe), handler.GetMyBookings)
 		protected.GET("/booking/:booking_id", middleware.CheckPermission(option.Log, permission.BookingView), handler.GetBooking)
 		protected.GET("/booking/user/:user_id", middleware.CheckPermission(option.Log, permission.BookingViewMe), handler.GetUserBookings)
 		protected.DELETE("/booking/:booking_id", middleware.CheckPermission(option.Log, permission.BookingCancel), handler.CancelBooking)

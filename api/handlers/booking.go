@@ -71,3 +71,23 @@ func (h *handler) CancelBooking(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "booking cancelled successfully"})
 }
+
+func (h *handler) GetMyBookings(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "user id not found in token"})
+		return
+	}
+
+	uid := int64(userID.(float64))
+
+	response, err := h.serviceManager.BookingService().GetUserBookings(
+		c.Request.Context(),
+		&bookingpb.GetUserBookingsRequest{UserId: uid},
+	)
+	if err != nil {
+		errs.HandleError(c, h.log, errs.MsgFailedGetUserBookings, err)
+		return
+	}
+	c.JSON(http.StatusOK, response)
+}
