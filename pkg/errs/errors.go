@@ -9,13 +9,20 @@ import (
 )
 
 var (
-	MsgFailedRegister        = "failed to register user"
-	MsgFailedGetUser         = "failed to get user"
-	MsgFailedCreateMovie     = "failed to create movie"
+	MsgFailedRegister = "failed to register user"
+	MsgFailedGetUser  = "failed to get user"
+
+	MsgFailedCreateMovie = "failed to create movie"
+	MsgFailedListMovies  = "failed to list movies"
+	MsgFailedGetMovie    = "failed to get movie"
+	MsgFailedUpdateMovie = "failed to update movie"
+	MsgFailedDeleteMovie = "failed to delete movie"
+
 	MsgFailedCreateBooking   = "failed to create booking"
 	MsgFailedGetBooking      = "failed to get booking"
 	MsgFailedGetUserBookings = "failed to get user bookings"
 	MsgFailedCancelBooking   = "failed to cancel booking"
+	
 	MsgFailedLogin           = "failed to login"
 
 	MsgUnauthorized = "unauthorized: invalid or missing token"

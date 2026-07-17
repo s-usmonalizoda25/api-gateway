@@ -26,6 +26,9 @@ func New(option Option) *gin.Engine {
 	{
 		api.POST("/user/register", handler.Register)
 		api.POST("/user/login", handler.Login)
+
+		api.GET("/movies", handler.ListMovies)
+		api.GET("/movies/:id", handler.GetMovie)
 	}
 
 	protected := router.Group("/api")
@@ -33,7 +36,9 @@ func New(option Option) *gin.Engine {
 	{
 		protected.GET("/user/:user_id", middleware.CheckPermission(option.Log, permission.UserView), handler.GetUser)
 
-		protected.POST("/movie/create", middleware.CheckPermission(option.Log, permission.MovieCreate), handler.CreateMovie)
+		protected.POST("/movies", middleware.CheckPermission(option.Log, permission.MovieCreate), handler.CreateMovie)
+		protected.PUT("/movies/:id", middleware.CheckPermission(option.Log, permission.MovieUpdate), handler.UpdateMovie)
+		protected.DELETE("/movies/:id", middleware.CheckPermission(option.Log, permission.MovieDelete), handler.DeleteMovie)
 
 		protected.POST("/booking/create", middleware.CheckPermission(option.Log, permission.BookingCreate), handler.CreateBooking)
 		protected.GET("/booking/:booking_id", middleware.CheckPermission(option.Log, permission.BookingView), handler.GetBooking)
