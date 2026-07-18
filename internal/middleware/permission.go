@@ -16,7 +16,26 @@ func CheckPermission(log *zap.Logger, requiredPermission string) gin.HandlerFunc
 			return
 		}
 
-		roleStr := role.(string)
+		var roleStr string
+		switch v := role.(type) {
+		case string:
+			roleStr = v
+		case float64:
+			if int(v) == 2 {
+				roleStr = "ADMIN"
+			} else if int(v) == 1 {
+				roleStr = "USER"
+			} else {
+				errs.HandleForbiddenError(c, log, "invalid role value in token")
+				c.Abort()
+				return
+			}
+		default:
+			errs.HandleForbiddenError(c, log, "invalid role format in token")
+			c.Abort()
+			return
+		}
+
 		if permissions, ok := permission.RolePermission[roleStr]; ok {
 			if _, has := permissions[requiredPermission]; has {
 				c.Next()
