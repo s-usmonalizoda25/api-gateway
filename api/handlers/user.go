@@ -33,6 +33,18 @@ func (h *handler) Register(c *gin.Context) {
 	c.JSON(http.StatusCreated, response)
 }
 
+// GetUser
+//
+// @Summary Get User
+// @Description Get user by id
+// @Tags User
+// @Security BearerAuth
+// @Produce json
+// @Param user_id path string true "User ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Router /user/{user_id} [get]
 func (h *handler) GetUser(c *gin.Context) {
 	idStr := c.Param("user_id")
 	id, err := strconv.ParseInt(idStr, 10, 64)

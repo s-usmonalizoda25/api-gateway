@@ -16,6 +16,15 @@ import (
 	"go.uber.org/zap"
 )
 
+// @title Cinema API Gateway
+// @version 1.0.0
+// @description API for Cinema Project
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @host localhost:8080
+// @BasePath /api
+
 func main() {
 	conf, err := config.New("./config/config.env")
 	if err != nil {

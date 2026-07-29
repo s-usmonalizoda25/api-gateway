@@ -1,6 +1,11 @@
 package api
 
 import (
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
+
+	_ "github.com/s-usmonalizoda25/api-gateway/docs"
+
 	"github.com/gin-gonic/gin"
 	"github.com/s-usmonalizoda25/api-gateway/api/handlers"
 	"github.com/s-usmonalizoda25/api-gateway/config"
@@ -19,6 +24,8 @@ type Option struct {
 func New(option Option) *gin.Engine {
 	router := gin.New()
 	router.Use(gin.Recovery())
+
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	handler := handlers.NewHandler(option.ServiceManager, option.Log)
 
