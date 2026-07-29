@@ -10,6 +10,18 @@ import (
 	moviepb "github.com/s-usmonalizoda25/protoCinemaService/gen/movie"
 )
 
+// CreateMovie
+// @Summary Create a movie
+// @Description Create a new movie (Admin/Protected)
+// @Tags Movie
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param request body models.CreateMovieRequest true "Movie Info"
+// @Success 201 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Router /api/movies [post]
 func (h *handler) CreateMovie(c *gin.Context) {
 	var body models.CreateMovieRequest
 
@@ -35,6 +47,14 @@ func (h *handler) CreateMovie(c *gin.Context) {
 	c.JSON(http.StatusCreated, response)
 }
 
+// ListMovies
+// @Summary List all movies
+// @Description Get a list of available movies
+// @Tags Movie
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Router /api/movies [get]
 func (h *handler) ListMovies(c *gin.Context) {
 	response, err := h.serviceManager.MovieService().List(c.Request.Context(), &moviepb.ListMovieRequest{})
 	if err != nil {
@@ -44,6 +64,17 @@ func (h *handler) ListMovies(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
+
+// GetMovie
+// @Summary Get movie by ID
+// @Description Get detailed information about a movie
+// @Tags Movie
+// @Produce json
+// @Param id path int true "Movie ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 404 {object} map[string]interface{}
+// @Router /api/movies/{id} [get]
 func (h *handler) GetMovie(c *gin.Context) {
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
@@ -58,6 +89,19 @@ func (h *handler) GetMovie(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
+// UpdateMovie
+// @Summary Update a movie
+// @Description Update movie details by ID (Admin/Protected)
+// @Tags Movie
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param id path int true "Movie ID"
+// @Param request body models.CreateMovieRequest true "Updated Movie Info"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Router /api/movies/{id} [put]
 func (h *handler) UpdateMovie(c *gin.Context) {
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
@@ -84,6 +128,17 @@ func (h *handler) UpdateMovie(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "movie updated successfully"})
 }
 
+// DeleteMovie
+// @Summary Delete a movie
+// @Description Delete a movie by ID (Admin/Protected)
+// @Tags Movie
+// @Security BearerAuth
+// @Produce json
+// @Param id path int true "Movie ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Router /api/movies/{id} [delete]
 func (h *handler) DeleteMovie(c *gin.Context) {
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {

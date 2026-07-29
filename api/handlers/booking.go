@@ -10,6 +10,19 @@ import (
 	bookingpb "github.com/s-usmonalizoda25/protoCinemaService/gen/booking"
 )
 
+
+// CreateBooking
+// @Summary Create a booking
+// @Description Book a movie ticket
+// @Tags Booking
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param request body models.CreateBookingRequest true "Booking Info"
+// @Success 201 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Router /api/booking/create [post]
 func (h *handler) CreateBooking(c *gin.Context) {
 	var body models.CreateBookingRequest
 
@@ -30,6 +43,17 @@ func (h *handler) CreateBooking(c *gin.Context) {
 	c.JSON(http.StatusCreated, response)
 }
 
+// GetBooking
+// @Summary Get Booking by ID
+// @Description Get booking details by its ID
+// @Tags Booking
+// @Security BearerAuth
+// @Produce json
+// @Param booking_id path int true "Booking ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Router /api/booking/{booking_id} [get]
 func (h *handler) GetBooking(c *gin.Context) {
 	id, err := strconv.ParseInt(c.Param("booking_id"), 10, 64)
 	if err != nil {
@@ -44,6 +68,18 @@ func (h *handler) GetBooking(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
+
+// GetUserBookings
+// @Summary Get User Bookings
+// @Description Get all bookings for a specific user ID
+// @Tags Booking
+// @Security BearerAuth
+// @Produce json
+// @Param user_id path int true "User ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Router /api/booking/user/{user_id} [get]
 func (h *handler) GetUserBookings(c *gin.Context) {
 	id, err := strconv.ParseInt(c.Param("user_id"), 10, 64)
 	if err != nil {
@@ -58,6 +94,18 @@ func (h *handler) GetUserBookings(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
+
+// CancelBooking
+// @Summary Cancel Booking
+// @Description Cancel a booking by ID
+// @Tags Booking
+// @Security BearerAuth
+// @Produce json
+// @Param booking_id path int true "Booking ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Router /api/booking/{booking_id} [delete]
 func (h *handler) CancelBooking(c *gin.Context) {
 	id, err := strconv.ParseInt(c.Param("booking_id"), 10, 64)
 	if err != nil {
@@ -72,6 +120,15 @@ func (h *handler) CancelBooking(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "booking cancelled successfully"})
 }
 
+// GetMyBookings
+// @Summary Get My Bookings
+// @Description Get bookings for the currently authenticated user
+// @Tags Booking
+// @Security BearerAuth
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Router /api/booking/me [get]
 func (h *handler) GetMyBookings(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {

@@ -10,6 +10,17 @@ import (
 	userpb "github.com/s-usmonalizoda25/protoCinemaService/gen/user"
 )
 
+// Register
+// @Summary Register a new user
+// @Description Register a new user with name, email, password, etc.
+// @Tags User
+// @Accept json
+// @Produce json
+// @Param request body models.CreateUserRequest true "User Registration Info"
+// @Success 201 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Router /api/user/register [post]
 func (h *handler) Register(c *gin.Context) {
 	var body models.CreateUserRequest
 	if err := c.ShouldBindJSON(&body); err != nil {
@@ -34,7 +45,6 @@ func (h *handler) Register(c *gin.Context) {
 }
 
 // GetUser
-//
 // @Summary Get User
 // @Description Get user by id
 // @Tags User
@@ -44,7 +54,7 @@ func (h *handler) Register(c *gin.Context) {
 // @Success 200 {object} map[string]interface{}
 // @Failure 400 {object} map[string]interface{}
 // @Failure 500 {object} map[string]interface{}
-// @Router /user/{user_id} [get]
+// @Router /api/user/{user_id} [get]
 func (h *handler) GetUser(c *gin.Context) {
 	idStr := c.Param("user_id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
@@ -65,6 +75,17 @@ func (h *handler) GetUser(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
+// Login
+// @Summary User Login
+// @Description Authenticate user and get tokens
+// @Tags User
+// @Accept json
+// @Produce json
+// @Param request body models.LoginRequest true "Login Credentials"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Router /api/user/login [post]
 func (h *handler) Login(c *gin.Context) {
 	var body models.LoginRequest
 	if err := c.ShouldBindJSON(&body); err != nil {
@@ -89,6 +110,15 @@ func (h *handler) Login(c *gin.Context) {
 	})
 }
 
+// GetMyProfile
+// @Summary Get My Profile
+// @Description Get profile details of the currently authenticated user
+// @Tags User
+// @Security BearerAuth
+// @Produce json
+// @Success 200 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Router /api/user/me [get]
 func (h *handler) GetMyProfile(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
@@ -109,6 +139,18 @@ func (h *handler) GetMyProfile(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
+// UpdateMyProfile
+// @Summary Update My Profile
+// @Description Update profile details of the currently authenticated user
+// @Tags User
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param request body models.UpdateUserRequest true "Updated Profile Info"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{}
+// @Router /api/user/me [put]	
 func (h *handler) UpdateMyProfile(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {

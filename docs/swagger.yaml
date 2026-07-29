@@ -1,10 +1,391 @@
+definitions:
+  models.CreateBookingRequest:
+    properties:
+      movie_id:
+        type: integer
+      user_id:
+        type: integer
+    required:
+    - movie_id
+    - user_id
+    type: object
+  models.CreateMovieRequest:
+    properties:
+      age_limit:
+        maximum: 21
+        minimum: 0
+        type: integer
+      description:
+        maxLength: 500
+        type: string
+      duration:
+        type: integer
+      title:
+        maxLength: 100
+        minLength: 1
+        type: string
+    required:
+    - age_limit
+    - description
+    - duration
+    - title
+    type: object
+  models.CreateUserRequest:
+    properties:
+      age:
+        minimum: 18
+        type: integer
+      email:
+        type: string
+      password:
+        minLength: 6
+        type: string
+      phone:
+        type: string
+      username:
+        maxLength: 30
+        minLength: 3
+        type: string
+    required:
+    - age
+    - email
+    - password
+    - username
+    type: object
+  models.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        minLength: 6
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  models.UpdateUserRequest:
+    properties:
+      phone:
+        type: string
+      username:
+        maxLength: 30
+        minLength: 3
+        type: string
+    required:
+    - phone
+    - username
+    type: object
 info:
   contact: {}
   description: API for Cinema Project
   title: Cinema API Gateway
   version: 1.0.0
 paths:
-  /user/{user_id}:
+  /api/booking/{booking_id}:
+    delete:
+      description: Cancel a booking by ID
+      parameters:
+      - description: Booking ID
+        in: path
+        name: booking_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Cancel Booking
+      tags:
+      - Booking
+    get:
+      description: Get booking details by its ID
+      parameters:
+      - description: Booking ID
+        in: path
+        name: booking_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get Booking by ID
+      tags:
+      - Booking
+  /api/booking/create:
+    post:
+      consumes:
+      - application/json
+      description: Book a movie ticket
+      parameters:
+      - description: Booking Info
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateBookingRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create a booking
+      tags:
+      - Booking
+  /api/booking/me:
+    get:
+      description: Get bookings for the currently authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get My Bookings
+      tags:
+      - Booking
+  /api/booking/user/{user_id}:
+    get:
+      description: Get all bookings for a specific user ID
+      parameters:
+      - description: User ID
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get User Bookings
+      tags:
+      - Booking
+  /api/movies:
+    get:
+      description: Get a list of available movies
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: List all movies
+      tags:
+      - Movie
+    post:
+      consumes:
+      - application/json
+      description: Create a new movie (Admin/Protected)
+      parameters:
+      - description: Movie Info
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateMovieRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create a movie
+      tags:
+      - Movie
+  /api/movies/{id}:
+    delete:
+      description: Delete a movie by ID (Admin/Protected)
+      parameters:
+      - description: Movie ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete a movie
+      tags:
+      - Movie
+    get:
+      description: Get detailed information about a movie
+      parameters:
+      - description: Movie ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get movie by ID
+      tags:
+      - Movie
+    put:
+      consumes:
+      - application/json
+      description: Update movie details by ID (Admin/Protected)
+      parameters:
+      - description: Movie ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated Movie Info
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateMovieRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update a movie
+      tags:
+      - Movie
+  /api/user/{user_id}:
     get:
       description: Get user by id
       parameters:
@@ -34,6 +415,127 @@ paths:
       security:
       - BearerAuth: []
       summary: Get User
+      tags:
+      - User
+  /api/user/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user and get tokens
+      parameters:
+      - description: Login Credentials
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      summary: User Login
+      tags:
+      - User
+  /api/user/me:
+    get:
+      description: Get profile details of the currently authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get My Profile
+      tags:
+      - User
+    put:
+      consumes:
+      - application/json
+      description: Update profile details of the currently authenticated user
+      parameters:
+      - description: Updated Profile Info
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update My Profile
+      tags:
+      - User
+  /api/user/register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user with name, email, password, etc.
+      parameters:
+      - description: User Registration Info
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Register a new user
       tags:
       - User
 securityDefinitions:
