@@ -220,7 +220,7 @@ func (h *handler) Refresh(c *gin.Context) {
 	})
 	accessString, err := newAccess.SignedString(secretKey)
 	if err != nil {
-		errs.HandleError(c, h.log, "failed to refresh token", err)
+		errs.HandleError(c, h.log, errs.MsgFailedRefresh, err)
 		return
 	}
 

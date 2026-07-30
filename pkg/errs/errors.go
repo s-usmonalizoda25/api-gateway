@@ -26,7 +26,8 @@ var (
 	MsgFailedGetUserBookings = "failed to get user bookings"
 	MsgFailedCancelBooking   = "failed to cancel booking"
 
-	MsgFailedLogin = "failed to login"
+	MsgFailedLogin   = "failed to login"
+	MsgFailedRefresh = "failed to refresh token"
 
 	MsgUnauthorized = "unauthorized: invalid or missing token"
 	MsgTokenExpired = "token expired"
