@@ -2,9 +2,12 @@ package handlers
 
 import (
 	"net/http"
+	"os"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/s-usmonalizoda25/api-gateway/models"
 	"github.com/s-usmonalizoda25/api-gateway/pkg/errs"
 	userpb "github.com/s-usmonalizoda25/protoCinemaService/gen/user"
@@ -150,7 +153,7 @@ func (h *handler) GetMyProfile(c *gin.Context) {
 // @Success 200 {object} map[string]interface{}
 // @Failure 400 {object} map[string]interface{}
 // @Failure 401 {object} map[string]interface{}
-// @Router /api/user/me [put]	
+// @Router /api/user/me [put]
 func (h *handler) UpdateMyProfile(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 	if !exists {
@@ -176,4 +179,50 @@ func (h *handler) UpdateMyProfile(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "profile updated successfully"})
+}
+
+// Refresh
+// @Summary Refresh access token
+// @Tags User
+// @Accept json
+// @Produce json
+// @Router /api/user/refresh [post]
+func (h *handler) Refresh(c *gin.Context) {
+	var body struct {
+		RefreshToken string `json:"refresh_token" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&body); err != nil {
+		errs.HandleValidationError(c, err)
+		return
+	}
+
+	secretKey := []byte(os.Getenv("JWT_SECRET_KEY"))
+	token, err := jwt.Parse(
+		body.RefreshToken,
+		func(token *jwt.Token) (interface{}, error) { return secretKey, nil },
+		jwt.WithValidMethods([]string{"HS256"}),
+	)
+	if err != nil || !token.Valid {
+		errs.HandleAuthError(c, h.log, errs.MsgUnauthorized)
+		return
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		errs.HandleAuthError(c, h.log, errs.MsgUnauthorized)
+		return
+	}
+
+	newAccess := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"user_id": claims["user_id"],
+		"role":    claims["role"],
+		"exp":     time.Now().Add(time.Minute * 15).Unix(),
+	})
+	accessString, err := newAccess.SignedString(secretKey)
+	if err != nil {
+		errs.HandleError(c, h.log, "failed to refresh token", err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"access_token": accessString})
 }

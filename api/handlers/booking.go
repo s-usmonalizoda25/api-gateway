@@ -10,6 +10,24 @@ import (
 	bookingpb "github.com/s-usmonalizoda25/protoCinemaService/gen/booking"
 )
 
+func getAuthContext(c *gin.Context) (userID int64, isAdmin bool, ok bool) {
+	uidRaw, exists := c.Get("user_id")
+	if !exists {
+		return 0, false, false
+	}
+	uidFloat, valid := uidRaw.(float64)
+	if !valid {
+		return 0, false, false
+	}
+
+	roleRaw, _ := c.Get("role")
+	admin := false
+	if roleFloat, valid := roleRaw.(float64); valid {
+		admin = int(roleFloat) == 2
+	}
+
+	return int64(uidFloat), admin, true
+}
 
 // CreateBooking
 // @Summary Create a booking
@@ -24,17 +42,27 @@ import (
 // @Failure 401 {object} map[string]interface{}
 // @Router /api/booking/create [post]
 func (h *handler) CreateBooking(c *gin.Context) {
-	var body models.CreateBookingRequest
+	userID, exists := c.Get("user_id")
+	if !exists {
+		errs.HandleAuthError(c, h.log, errs.MsgUnauthorized)
+		return
+	}
+	uidFloat, ok := userID.(float64)
+	if !ok {
+		errs.HandleAuthError(c, h.log, errs.MsgUnauthorized)
+		return
+	}
+	uid := int64(uidFloat)
 
+	var body models.CreateBookingRequest
 	if err := c.ShouldBindJSON(&body); err != nil {
 		errs.HandleValidationError(c, err)
 		return
 	}
 
 	response, err := h.serviceManager.BookingService().CreateBooking(c.Request.Context(), &bookingpb.CreateBookingRequest{
-		UserId: body.UserID, MovieId: body.MovieID,
+		UserId: uid, MovieId: body.MovieID,
 	})
-
 	if err != nil {
 		errs.HandleError(c, h.log, errs.MsgFailedCreateBooking, err)
 		return
@@ -54,6 +82,7 @@ func (h *handler) CreateBooking(c *gin.Context) {
 // @Failure 400 {object} map[string]interface{}
 // @Failure 401 {object} map[string]interface{}
 // @Router /api/booking/{booking_id} [get]
+
 func (h *handler) GetBooking(c *gin.Context) {
 	id, err := strconv.ParseInt(c.Param("booking_id"), 10, 64)
 	if err != nil {
@@ -67,7 +96,6 @@ func (h *handler) GetBooking(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, response)
 }
-
 
 // GetUserBookings
 // @Summary Get User Bookings
@@ -86,6 +114,17 @@ func (h *handler) GetUserBookings(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user_id"})
 		return
 	}
+
+	callerID, isAdmin, ok := getAuthContext(c)
+	if !ok {
+		errs.HandleAuthError(c, h.log, errs.MsgUnauthorized)
+		return
+	}
+	if !isAdmin && callerID != id {
+		errs.HandleForbiddenError(c, h.log, errs.MsgForbidden)
+		return
+	}
+
 	response, err := h.serviceManager.BookingService().GetUserBookings(c.Request.Context(), &bookingpb.GetUserBookingsRequest{UserId: id})
 	if err != nil {
 		errs.HandleError(c, h.log, errs.MsgFailedGetUserBookings, err)
@@ -93,7 +132,6 @@ func (h *handler) GetUserBookings(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, response)
 }
-
 
 // CancelBooking
 // @Summary Cancel Booking
@@ -112,6 +150,23 @@ func (h *handler) CancelBooking(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid booking_id"})
 		return
 	}
+
+	callerID, isAdmin, ok := getAuthContext(c)
+	if !ok {
+		errs.HandleAuthError(c, h.log, errs.MsgUnauthorized)
+		return
+	}
+
+	existing, err := h.serviceManager.BookingService().GetBooking(c.Request.Context(), &bookingpb.GetBookingRequest{Id: id})
+	if err != nil {
+		errs.HandleError(c, h.log, errs.MsgFailedGetBooking, err)
+		return
+	}
+	if !isAdmin && existing.Booking.UserId != callerID {
+		errs.HandleForbiddenError(c, h.log, errs.MsgForbidden)
+		return
+	}
+
 	_, err = h.serviceManager.BookingService().CancelBooking(c.Request.Context(), &bookingpb.CancelBookingRequest{Id: id})
 	if err != nil {
 		errs.HandleError(c, h.log, errs.MsgFailedCancelBooking, err)

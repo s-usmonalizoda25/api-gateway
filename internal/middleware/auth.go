@@ -29,9 +29,13 @@ func AuthMiddleware(log *zap.Logger) gin.HandlerFunc {
 		tokenString := parts[1]
 		secretKey := []byte(os.Getenv("JWT_SECRET_KEY"))
 
-		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-			return secretKey, nil
-		})
+		token, err := jwt.Parse(
+			tokenString,
+			func(token *jwt.Token) (interface{}, error) {
+				return secretKey, nil
+			},
+			jwt.WithValidMethods([]string{"HS256"}),
+		)
 
 		if err != nil || !token.Valid {
 			errs.HandleAuthError(c, log, errs.MsgUnauthorized)

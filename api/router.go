@@ -33,6 +33,7 @@ func New(option Option) *gin.Engine {
 	{
 		api.POST("/user/register", handler.Register)
 		api.POST("/user/login", handler.Login)
+		api.POST("/user/refresh", handler.Refresh)
 
 		api.GET("/movies", handler.ListMovies)
 		api.GET("/movies/:id", handler.GetMovie)
