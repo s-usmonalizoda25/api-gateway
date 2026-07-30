@@ -6,6 +6,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"go.uber.org/zap"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 var (
@@ -45,8 +47,33 @@ func HandleValidationError(c *gin.Context, err error) {
 }
 
 func HandleError(c *gin.Context, log *zap.Logger, msg string, err error) {
-	log.Error(msg, zap.Error(err))
-	c.JSON(http.StatusInternalServerError, gin.H{"error": msg})
+	st, ok := status.FromError(err)
+	if !ok {
+		log.Error(msg, zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{"error": msg})
+		return
+	}
+
+	switch st.Code() {
+	case codes.AlreadyExists:
+		log.Warn(msg, zap.Error(err))
+		c.JSON(http.StatusConflict, gin.H{"error": st.Message()})
+	case codes.NotFound:
+		log.Warn(msg, zap.Error(err))
+		c.JSON(http.StatusNotFound, gin.H{"error": st.Message()})
+	case codes.InvalidArgument:
+		log.Warn(msg, zap.Error(err))
+		c.JSON(http.StatusBadRequest, gin.H{"error": st.Message()})
+	case codes.Unauthenticated:
+		log.Warn(msg, zap.Error(err))
+		c.JSON(http.StatusUnauthorized, gin.H{"error": st.Message()})
+	case codes.PermissionDenied:
+		log.Warn(msg, zap.Error(err))
+		c.JSON(http.StatusForbidden, gin.H{"error": st.Message()})
+	default:
+		log.Error(msg, zap.Error(err))
+		c.JSON(http.StatusInternalServerError, gin.H{"error": msg})
+	}
 }
 
 func HandleAuthError(c *gin.Context, log *zap.Logger, msg string) {
