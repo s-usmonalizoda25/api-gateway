@@ -11,6 +11,7 @@ import (
 	"github.com/s-usmonalizoda25/api-gateway/config"
 	"github.com/s-usmonalizoda25/api-gateway/internal/middleware"
 	"github.com/s-usmonalizoda25/api-gateway/models/permission"
+	"github.com/s-usmonalizoda25/api-gateway/pkg/rabbitmq"
 	"github.com/s-usmonalizoda25/api-gateway/services"
 	"go.uber.org/zap"
 )
@@ -18,6 +19,7 @@ import (
 type Option struct {
 	Conf           config.Config
 	ServiceManager services.IServiceManager
+	RabbitMQ       *rabbitmq.RabbitMQ
 	Log            *zap.Logger
 }
 
@@ -27,7 +29,7 @@ func New(option Option) *gin.Engine {
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	handler := handlers.NewHandler(option.ServiceManager, option.Log)
+	handler := handlers.NewHandler(option.ServiceManager, option.RabbitMQ, option.Log)
 
 	api := router.Group("/api")
 	{

@@ -8,6 +8,7 @@ import (
 	"github.com/s-usmonalizoda25/api-gateway/models"
 	"github.com/s-usmonalizoda25/api-gateway/pkg/errs"
 	bookingpb "github.com/s-usmonalizoda25/protoCinemaService/gen/booking"
+	"go.uber.org/zap"
 )
 
 func getAuthContext(c *gin.Context) (userID int64, isAdmin bool, ok bool) {
@@ -66,6 +67,11 @@ func (h *handler) CreateBooking(c *gin.Context) {
 	if err != nil {
 		errs.HandleError(c, h.log, errs.MsgFailedCreateBooking, err)
 		return
+	}
+
+	err = h.rabbitMQ.Publisher(c.Request.Context(), response, "booking_created")
+	if err != nil {
+		h.log.Error("failed to publish booking message to rabbitmq", zap.Error(err))
 	}
 
 	c.JSON(http.StatusCreated, response)

@@ -10,6 +10,7 @@ import (
 type Config struct {
 	HTTPPORT     string `env:"HTTP_PORT" envDefault:"8080"`
 	JWTSecretKey string `env:"JWT_SECRET_KEY" env-required:"true"`
+	RabbitMQURL  string `env:"RABBITMQ_URL" env-required:"true"`
 	Services     Services
 }
 

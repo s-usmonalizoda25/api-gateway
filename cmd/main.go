@@ -12,6 +12,7 @@ import (
 	"github.com/s-usmonalizoda25/api-gateway/api"
 	"github.com/s-usmonalizoda25/api-gateway/config"
 	"github.com/s-usmonalizoda25/api-gateway/pkg/logger"
+	"github.com/s-usmonalizoda25/api-gateway/pkg/rabbitmq"
 	"github.com/s-usmonalizoda25/api-gateway/services"
 	"go.uber.org/zap"
 )
@@ -34,6 +35,12 @@ func main() {
 	myLogger := logger.New()
 	defer myLogger.Sync()
 
+	rabbitClient, err := rabbitmq.New(conf.RabbitMQURL)
+	if err != nil {
+		myLogger.Fatal("failed to connect to rabbitmq", zap.Error(err))
+	}
+	defer rabbitClient.Close()
+
 	serviceManager, err := services.NewServiceManager(conf.Services)
 	if err != nil {
 		myLogger.Fatal("services.NewServiceManager():", zap.Error(err))
@@ -41,6 +48,7 @@ func main() {
 
 	handler := api.New(api.Option{
 		ServiceManager: serviceManager,
+		RabbitMQ:       rabbitClient,
 		Log:            myLogger.Logger,
 	})
 
