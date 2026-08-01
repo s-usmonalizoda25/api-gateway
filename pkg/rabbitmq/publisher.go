@@ -5,34 +5,37 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/rabbitmq/amqp091-go"
+	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-func (r *RabbitMQ) Publisher(ctx context.Context, body any, routingKey string) error {
-	if r.ch.IsClosed() || r.conn.IsClosed(){
-		err := r.connect()
-		if err != nil {
-			return fmt.Errorf("r.connect: %w",err)
-		}
+func (r *RabbitMQ) Publish(ctx context.Context, routingKey string, body any) error {
+	if err := r.ensureConnected(); err != nil {
+		return fmt.Errorf("ensureConnected: %w", err)
 	}
 
 	bytesBody, err := json.Marshal(body)
 	if err != nil {
-		return fmt.Errorf("json.Marshal: %w",err)
+		return fmt.Errorf("json.Marshal: %w", err)
 	}
 
-	if err = r.ch.PublishWithContext(
+	r.mu.Lock()
+	ch := r.ch
+	r.mu.Unlock()
+
+	if err := ch.PublishWithContext(
 		ctx,
 		"",
 		routingKey,
 		false,
 		false,
-		amqp091.Publishing{
-			ContentType: "application/json",
-			Body: bytesBody,
+		amqp.Publishing{
+			ContentType:  "application/json",
+			Body:         bytesBody,
+			DeliveryMode: amqp.Persistent,
 		},
 	); err != nil {
-		return fmt.Errorf("r.Ch.PublishWithContext: %w",err)
+		return fmt.Errorf("PublishWithContext: %w", err)
 	}
+
 	return nil
 }

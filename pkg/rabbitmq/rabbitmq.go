@@ -2,52 +2,83 @@ package rabbitmq
 
 import (
 	"fmt"
+	"sync"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-type RabbitMQ struct {
-	conn *amqp.Connection
-	ch *amqp.Channel
+const BookingQueue = "booking_queue"
 
-	url string
+type RabbitMQ struct {
+	mu   sync.Mutex
+	conn *amqp.Connection
+	ch   *amqp.Channel
+	url  string
 }
 
 func New(url string) (*RabbitMQ, error) {
-	rabbit := &RabbitMQ{
-		url: url,
+	r := &RabbitMQ{url: url}
+
+	if err := r.connect(); err != nil {
+		return nil, fmt.Errorf("rabbitmq.New: %w", err)
 	}
 
-	err := rabbit.connect()
-	if err != nil {
-		return nil, fmt.Errorf("connect: %w",err)
-	}
-
-	return rabbit,nil
+	return r, nil
 }
 
-func (r *RabbitMQ) connect () error{
-	r.Close()
+func (r *RabbitMQ) connect() error {
+	r.closeLocked()
 
-	var err error
-	r.conn, err = amqp.Dial(r.url)
+	conn, err := amqp.Dial(r.url)
 	if err != nil {
-		return fmt.Errorf("amqp.Dial: %w",err)
+		return fmt.Errorf("amqp.Dial: %w", err)
 	}
 
-	r.ch, err = r.conn.Channel()
+	ch, err := conn.Channel()
 	if err != nil {
-		return fmt.Errorf("conn.Channel: %w",err)
+		conn.Close()
+		return fmt.Errorf("conn.Channel: %w", err)
 	}
+
+	if _, err := ch.QueueDeclare(
+		BookingQueue,
+		true,  // durable
+		false, // autoDelete
+		false, // exclusive
+		false, // noWait
+		nil,
+	); err != nil {
+		ch.Close()
+		conn.Close()
+		return fmt.Errorf("ch.QueueDeclare: %w", err)
+	}
+
+	r.conn = conn
+	r.ch = ch
 	return nil
 }
 
-func (r *RabbitMQ) Close() {
-	if !r.conn.IsClosed() {
-		r.conn.Close()
+func (r *RabbitMQ) ensureConnected() error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	if r.conn != nil && !r.conn.IsClosed() && r.ch != nil && !r.ch.IsClosed() {
+		return nil
 	}
-	
-	if !r.ch.IsClosed(){
+	return r.connect()
+}
+
+func (r *RabbitMQ) closeLocked() {
+	if r.ch != nil && !r.ch.IsClosed() {
 		r.ch.Close()
 	}
+	if r.conn != nil && !r.conn.IsClosed() {
+		r.conn.Close()
+	}
+}
+
+func (r *RabbitMQ) Close() {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.closeLocked()
 }

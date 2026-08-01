@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/s-usmonalizoda25/api-gateway/models"
 	"github.com/s-usmonalizoda25/api-gateway/pkg/errs"
+	"github.com/s-usmonalizoda25/api-gateway/pkg/rabbitmq"
 	bookingpb "github.com/s-usmonalizoda25/protoCinemaService/gen/booking"
 	"go.uber.org/zap"
 )
@@ -69,9 +70,8 @@ func (h *handler) CreateBooking(c *gin.Context) {
 		return
 	}
 
-	err = h.rabbitMQ.Publisher(c.Request.Context(), response, "booking_created")
-	if err != nil {
-		h.log.Error("failed to publish booking message to rabbitmq", zap.Error(err))
+	if err := h.rabbitMQ.Publish(c.Request.Context(), rabbitmq.BookingQueue, response); err != nil {
+		h.log.Error("failed to publish booking event to rabbitmq", zap.Error(err))
 	}
 
 	c.JSON(http.StatusCreated, response)
