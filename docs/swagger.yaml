@@ -3,11 +3,8 @@ definitions:
     properties:
       movie_id:
         type: integer
-      user_id:
-        type: integer
     required:
     - movie_id
-    - user_id
     type: object
   models.CreateMovieRequest:
     properties:
@@ -111,37 +108,6 @@ paths:
       security:
       - BearerAuth: []
       summary: Cancel Booking
-      tags:
-      - Booking
-    get:
-      description: Get booking details by its ID
-      parameters:
-      - description: Booking ID
-        in: path
-        name: booking_id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties: true
-            type: object
-        "401":
-          description: Unauthorized
-          schema:
-            additionalProperties: true
-            type: object
-      security:
-      - BearerAuth: []
-      summary: Get Booking by ID
       tags:
       - Booking
   /api/booking/create:
@@ -503,6 +469,16 @@ paths:
       security:
       - BearerAuth: []
       summary: Update My Profile
+      tags:
+      - User
+  /api/user/refresh:
+    post:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses: {}
+      summary: Refresh access token
       tags:
       - User
   /api/user/register:

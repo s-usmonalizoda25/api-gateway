@@ -152,53 +152,6 @@ const docTemplate = `{
             }
         },
         "/api/booking/{booking_id}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Get booking details by its ID",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Booking"
-                ],
-                "summary": "Get Booking by ID",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Booking ID",
-                        "name": "booking_id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    }
-                }
-            },
             "delete": {
                 "security": [
                     {
@@ -611,6 +564,21 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/user/refresh": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Refresh access token",
+                "responses": {}
+            }
+        },
         "/api/user/register": {
             "post": {
                 "description": "Register a new user with name, email, password, etc.",
@@ -714,14 +682,10 @@ const docTemplate = `{
         "models.CreateBookingRequest": {
             "type": "object",
             "required": [
-                "movie_id",
-                "user_id"
+                "movie_id"
             ],
             "properties": {
                 "movie_id": {
-                    "type": "integer"
-                },
-                "user_id": {
                     "type": "integer"
                 }
             }
