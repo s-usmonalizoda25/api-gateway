@@ -11,6 +11,7 @@ import (
 
 	"github.com/s-usmonalizoda25/api-gateway/api"
 	"github.com/s-usmonalizoda25/api-gateway/config"
+	jwtpkg "github.com/s-usmonalizoda25/api-gateway/pkg/jwt"
 	"github.com/s-usmonalizoda25/api-gateway/pkg/logger"
 	"github.com/s-usmonalizoda25/api-gateway/pkg/rabbitmq"
 	"github.com/s-usmonalizoda25/api-gateway/services"
@@ -46,9 +47,12 @@ func main() {
 		myLogger.Fatal("services.NewServiceManager():", zap.Error(err))
 	}
 
+	jwtParser := jwtpkg.NewParser(conf.JWTSecretKey)
+
 	handler := api.New(api.Option{
 		ServiceManager: serviceManager,
 		RabbitMQ:       rabbitClient,
+		JWTParser:      jwtParser,
 		Log:            myLogger.Logger,
 	})
 

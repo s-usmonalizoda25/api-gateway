@@ -1,8 +1,8 @@
 package handlers
 
 import (
+	"context"
 	"net/http"
-	"os"
 	"strconv"
 	"time"
 
@@ -11,7 +11,18 @@ import (
 	"github.com/s-usmonalizoda25/api-gateway/models"
 	"github.com/s-usmonalizoda25/api-gateway/pkg/errs"
 	userpb "github.com/s-usmonalizoda25/protoCinemaService/gen/user"
+	"google.golang.org/grpc/metadata"
 )
+
+func grpcContext(c *gin.Context) context.Context {
+	ctx := c.Request.Context()
+	if tokenVal, exists := c.Get("token"); exists {
+		if tokenStr, ok := tokenVal.(string); ok {
+			ctx = metadata.AppendToOutgoingContext(ctx, "authorization", "Bearer "+tokenStr)
+		}
+	}
+	return ctx
+}
 
 // Register
 // @Summary Register a new user
@@ -66,7 +77,7 @@ func (h *handler) GetUser(c *gin.Context) {
 		return
 	}
 
-	response, err := h.serviceManager.UserService().GetByID(c.Request.Context(), &userpb.GetUserRequest{
+	response, err := h.serviceManager.UserService().GetByID(grpcContext(c), &userpb.GetUserRequest{
 		Id: id,
 	})
 
@@ -131,7 +142,7 @@ func (h *handler) GetMyProfile(c *gin.Context) {
 
 	uid := int64(userID.(float64))
 
-	response, err := h.serviceManager.UserService().GetByID(c.Request.Context(), &userpb.GetUserRequest{
+	response, err := h.serviceManager.UserService().GetByID(grpcContext(c), &userpb.GetUserRequest{
 		Id: uid,
 	})
 	if err != nil {
@@ -168,7 +179,7 @@ func (h *handler) UpdateMyProfile(c *gin.Context) {
 		return
 	}
 
-	_, err := h.serviceManager.UserService().Update(c.Request.Context(), &userpb.UpdateUserRequest{
+	_, err := h.serviceManager.UserService().Update(grpcContext(c), &userpb.UpdateUserRequest{
 		Id:    uid,
 		Name:  body.Username,
 		Phone: body.Phone,
@@ -196,29 +207,38 @@ func (h *handler) Refresh(c *gin.Context) {
 		return
 	}
 
-	secretKey := []byte(os.Getenv("JWT_SECRET_KEY"))
-	token, err := jwt.Parse(
-		body.RefreshToken,
-		func(token *jwt.Token) (interface{}, error) { return secretKey, nil },
-		jwt.WithValidMethods([]string{"HS256"}),
-	)
-	if err != nil || !token.Valid {
+	claims, err := h.jwtParser.Parse(body.RefreshToken)
+	if err != nil {
 		errs.HandleAuthError(c, h.log, errs.MsgUnauthorized)
 		return
 	}
 
-	claims, ok := token.Claims.(jwt.MapClaims)
+	if tokenType, _ := claims["type"].(string); tokenType != "refresh" {
+		errs.HandleAuthError(c, h.log, "provided token is not a refresh token")
+		return
+	}
+
+	uidFloat, ok := claims["user_id"].(float64)
 	if !ok {
 		errs.HandleAuthError(c, h.log, errs.MsgUnauthorized)
 		return
 	}
+	uid := int64(uidFloat)
+	grpcCtx := metadata.AppendToOutgoingContext(c.Request.Context(), "authorization", "Bearer "+body.RefreshToken)
+	userResp, err := h.serviceManager.UserService().GetByID(grpcCtx, &userpb.GetUserRequest{Id: uid})
+	if err != nil {
+		errs.HandleError(c, h.log, errs.MsgFailedGetUser, err)
+		return
+	}
 
-	newAccess := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"user_id": claims["user_id"],
-		"role":    claims["role"],
+	newClaims := jwt.MapClaims{
+		"user_id": uid,
+		"role":    int32(userResp.Role),
+		"type":    "access",
 		"exp":     time.Now().Add(time.Minute * 15).Unix(),
-	})
-	accessString, err := newAccess.SignedString(secretKey)
+	}
+
+	accessString, err := h.jwtParser.NewToken(newClaims)
 	if err != nil {
 		errs.HandleError(c, h.log, errs.MsgFailedRefresh, err)
 		return

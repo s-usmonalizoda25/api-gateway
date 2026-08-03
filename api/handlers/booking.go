@@ -62,7 +62,7 @@ func (h *handler) CreateBooking(c *gin.Context) {
 		return
 	}
 
-	response, err := h.serviceManager.BookingService().CreateBooking(c.Request.Context(), &bookingpb.CreateBookingRequest{
+	response, err := h.serviceManager.BookingService().CreateBooking(grpcContext(c), &bookingpb.CreateBookingRequest{
 		UserId: uid, MovieId: body.MovieID,
 	})
 	if err != nil {

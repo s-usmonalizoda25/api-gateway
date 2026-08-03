@@ -1,16 +1,15 @@
 package middleware
 
 import (
-	"os"
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/s-usmonalizoda25/api-gateway/pkg/errs"
+	"github.com/s-usmonalizoda25/api-gateway/pkg/jwt"
 	"go.uber.org/zap"
 )
 
-func AuthMiddleware(log *zap.Logger) gin.HandlerFunc {
+func AuthMiddleware(parser *jwt.Parser, log *zap.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
@@ -27,30 +26,23 @@ func AuthMiddleware(log *zap.Logger) gin.HandlerFunc {
 		}
 
 		tokenString := parts[1]
-		secretKey := []byte(os.Getenv("JWT_SECRET_KEY"))
 
-		token, err := jwt.Parse(
-			tokenString,
-			func(token *jwt.Token) (interface{}, error) {
-				return secretKey, nil
-			},
-			jwt.WithValidMethods([]string{"HS256"}),
-		)
-
-		if err != nil || !token.Valid {
+		claims, err := parser.Parse(tokenString)
+		if err != nil {
 			errs.HandleAuthError(c, log, errs.MsgUnauthorized)
 			c.Abort()
 			return
 		}
 
-		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-			c.Set("role", claims["role"])
-			c.Set("user_id", claims["user_id"])
-		} else {
-			errs.HandleAuthError(c, log, errs.MsgUnauthorized)
+		if tokenType, _ := claims["type"].(string); tokenType != "access" {
+			errs.HandleAuthError(c, log, "this endpoint requires an access token, not a refresh token")
 			c.Abort()
 			return
 		}
+
+		c.Set("role", claims["role"])
+		c.Set("user_id", claims["user_id"])
+		c.Set("token", tokenString)
 
 		c.Next()
 	}

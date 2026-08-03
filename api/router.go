@@ -8,18 +8,18 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/s-usmonalizoda25/api-gateway/api/handlers"
-	"github.com/s-usmonalizoda25/api-gateway/config"
 	"github.com/s-usmonalizoda25/api-gateway/internal/middleware"
 	"github.com/s-usmonalizoda25/api-gateway/models/permission"
+	jwtpkg "github.com/s-usmonalizoda25/api-gateway/pkg/jwt"
 	"github.com/s-usmonalizoda25/api-gateway/pkg/rabbitmq"
 	"github.com/s-usmonalizoda25/api-gateway/services"
 	"go.uber.org/zap"
 )
 
 type Option struct {
-	Conf           config.Config
 	ServiceManager services.IServiceManager
 	RabbitMQ       *rabbitmq.RabbitMQ
+	JWTParser      *jwtpkg.Parser
 	Log            *zap.Logger
 }
 
@@ -29,7 +29,7 @@ func New(option Option) *gin.Engine {
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	handler := handlers.NewHandler(option.ServiceManager, option.RabbitMQ, option.Log)
+	handler := handlers.NewHandler(option.ServiceManager, option.RabbitMQ, option.JWTParser, option.Log)
 
 	api := router.Group("/api")
 	{
@@ -42,7 +42,7 @@ func New(option Option) *gin.Engine {
 	}
 
 	protected := router.Group("/api")
-	protected.Use(middleware.AuthMiddleware(option.Log))
+	protected.Use(middleware.AuthMiddleware(option.JWTParser, option.Log))
 	{
 		protected.GET("/user/:user_id", middleware.CheckPermission(option.Log, permission.UserView), handler.GetUser)
 		protected.GET("/user/me", middleware.CheckPermission(option.Log, permission.UserViewMe), handler.GetMyProfile)
